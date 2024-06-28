@@ -16,3 +16,10 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+"""
+References:
+- bitcoin-tx-tutorial: https://github.com/chaincodelabs/bitcoin-tx-tutorial
+"""
