@@ -1,4 +1,5 @@
 import ecdsa
+import hashlib
 
 def main():
     privkey1 = "39dc0a9f0b185a2ee56349691f34716e6e0cda06a7f9707742ac113c4e2317bf"
@@ -17,7 +18,7 @@ def main():
     locktime = 0
 
     # convert privkey to pubkey
-    def priv_to_pub(privkey:bytes):
+    def priv_to_pub(privkey:bytes)->bytes:
         sk = ecdsa.SigningKey.from_string(privkey, curve=ecdsa.SECP256k1) # privkey should be in bytes
         ver_key = sk.verifying_key
         uncompressed_pubkey = ver_key.to_string().hex()
@@ -34,7 +35,35 @@ def main():
         return compressed_pubkey
     pubkey1 = priv_to_pub(bytes.fromhex(privkey1))
     pubkey2 = priv_to_pub(bytes.fromhex(privkey2))
-        
+
+    # create redeem script
+    redeem_script = bytes.fromhex(
+        "52" + 
+        "21" +
+        pubkey2.hex() +
+        "21" +
+        pubkey1.hex() +
+        "52" +
+        "ae"
+    )
+
+    # check if it matches the given one
+    print(redeem_script.hex()=="5221032ff8c5df0bc00fe1ac2319c3b8070d6d1e04cfbf4fedda499ae7b775185ad53b21039bbc8d24f89e5bc44c5b0d1980d6658316a6b2440023117c3c03a4975b04dd5652ae")
+
+
+
+    
+    """
+    Calculate the p2wsh address from redeem script
+    """
+
+    # calculate script pubkey
+    def script_to_spk(redeem_script:bytes)->bytes:
+        digest = hashlib.sha256(redeem_script).digest()
+        spk = bytes.fromhex("0020") + digest
+        return spk
+    
+    spk = script_to_spk(redeem_script)
 
 
 if __name__ == "__main__":
@@ -48,4 +77,5 @@ References:
 - learmeabitcoin : https://learnmeabitcoin.com/
 - reference implementation : https://github.com/sipa/bech32/blob/master/ref/python/segwit_addr.py
 - opcodes : https://en.bitcoin.it/wiki/Script
+- ecdsa : https://github.com/tlsfuzzer/python-ecdsa
 """
