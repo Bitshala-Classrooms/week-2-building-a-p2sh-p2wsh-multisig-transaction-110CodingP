@@ -63,6 +63,35 @@ def main():
     marker = bytes.fromhex("00")
     flag = bytes.fromhex("01")
 
+    # to calculate compact size
+    def cmptSz(data:bytes)->bytes:
+        val = int.from_bytes(data)
+        if (val<=252):
+            return val.to_bytes(1,"little",signed=False)
+        elif val>252 and val<=65535:
+            return bytes.fromhex("fd") + val.to_bytes(2,"little",signed=False)
+        elif val>65535 and val<=4294967295:
+            return bytes.fromhex("fe") + val.to_bytes(4,"little",signed=False)
+        elif val>4294967295 and val<=18446744073709551615:
+            return bytes.fromhex("ff") + val.to_bytes(8,"little",signed=False)
+
+    # inputs
+    cnt = bytes.fromhex("01")
+    txid_to_spend = bytes.fromhex("0000000000000000000000000000000000000000000000000000000000000000")
+    idx_to_spend = bytes.fromhex("00000000")
+    script_sig = bytes.fromhex("")
+    sequence = bytes.fromhex("ffffffff")
+
+    inputs = (
+        txid_to_spend +
+        idx_to_spend +
+        cmptSz(script_sig) +
+        script_sig +
+        sequence
+    )
+
+
+
 
 if __name__ == "__main__":
     main()
@@ -76,5 +105,6 @@ References:
 - reference implementation : https://github.com/sipa/bech32/blob/master/ref/python/segwit_addr.py
 - opcodes : https://en.bitcoin.it/wiki/Script
 - ecdsa : https://github.com/tlsfuzzer/python-ecdsa
-- p2sh-p2wsh format: Programming Bitcoin by Jimmy Song
+- p2sh-p2wsh format: Programming Bitcoin by Jimmy Song(Ch -13)
+- cmptSz : https://learnmeabitcoin.com/
 """
