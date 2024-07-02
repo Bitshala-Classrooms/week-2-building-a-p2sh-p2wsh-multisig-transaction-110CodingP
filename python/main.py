@@ -50,13 +50,6 @@ def main():
     # check if it matches the given one
     print(redeem_script.hex()=="5221032ff8c5df0bc00fe1ac2319c3b8070d6d1e04cfbf4fedda499ae7b775185ad53b21039bbc8d24f89e5bc44c5b0d1980d6658316a6b2440023117c3c03a4975b04dd5652ae")
 
-
-
-    
-    """
-    Calculate the p2wsh address from redeem script
-    """
-
     # calculate script pubkey
     def script_to_spk(redeem_script:bytes)->bytes:
         digest = hashlib.sha256(redeem_script).digest()
@@ -64,6 +57,11 @@ def main():
         return spk
     
     spk = script_to_spk(redeem_script)
+
+    # version marker and flag
+    version = bytes.fromhex("02000000")
+    marker = bytes.fromhex("00")
+    flag = bytes.fromhex("01")
 
 
 if __name__ == "__main__":
@@ -78,4 +76,5 @@ References:
 - reference implementation : https://github.com/sipa/bech32/blob/master/ref/python/segwit_addr.py
 - opcodes : https://en.bitcoin.it/wiki/Script
 - ecdsa : https://github.com/tlsfuzzer/python-ecdsa
+- p2sh-p2wsh format: Programming Bitcoin by Jimmy Song
 """
