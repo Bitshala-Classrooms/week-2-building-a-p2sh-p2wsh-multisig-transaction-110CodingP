@@ -13,7 +13,6 @@ def main():
     sequence = "ffffffff"
     output_val_sats = int(0.001*(10**8))
 
-    receiver_address = "325UUecEQuyrTd28Xs2hvAxdAjHM7XzqVF"
 
     locktime = 0
 
@@ -76,7 +75,7 @@ def main():
             return bytes.fromhex("ff") + val.to_bytes(8,"little",signed=False)
 
     # inputs
-    cnt = bytes.fromhex("01")
+    input_cnt = bytes.fromhex("01")
     txid_to_spend = bytes.fromhex("0000000000000000000000000000000000000000000000000000000000000000")
     idx_to_spend = bytes.fromhex("00000000")
     script_sig = bytes.fromhex("")
@@ -88,6 +87,27 @@ def main():
         cmptSz(script_sig) +
         script_sig +
         sequence
+    )
+
+    #decode receiver address to create spk
+    receiver_address = "325UUecEQuyrTd28Xs2hvAxdAjHM7XzqVF" # prefix => 3 so P2SH
+    receiver_address = base58.b58decode("325UUecEQuyrTd28Xs2hvAxdAjHM7XzqVF")
+    decoded = receiver_address[:-4]
+    checksum = receiver_address[-4:]
+    decoded_hash = hashlib.sha256(decoded).digest()
+    # print(hashlib.sha256(decoded_hash).digest()[:4]==checksum)
+    output_script_hash = decoded[1:]
+    output_spk = bytes.fromhex("a9") + bytes.fromhex("14") + output_script_hash + bytes.fromhex("87") 
+
+
+    # outputs
+    output_ct = bytes.fromhex("01")
+    output_amt_sats = int(0.01*(10**8)).to_bytes(8,byteorder="little",signed=True)
+
+    outputs = (
+        output_amt_sats + 
+        cmptSz(output_spk) +
+        output_spk
     )
 
 
@@ -107,4 +127,5 @@ References:
 - ecdsa : https://github.com/tlsfuzzer/python-ecdsa
 - p2sh-p2wsh format: Programming Bitcoin by Jimmy Song(Ch -13)
 - cmptSz : https://learnmeabitcoin.com/
+- address prefixes: https://en.bitcoin.it/wiki/List_of_address_prefixes
 """
