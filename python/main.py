@@ -1,3 +1,49 @@
+"""
+Goal:
+We have been given an input locked with a P2SH-P2WSH script and we need to spend it.
+Since we are using this script , the txn ought to be a segwit txn, so there should be a marker and a flag.
+
+Approach:
+(Ignoring any miner fee for now, so assuming input has 0.001 BTC )
+1. create an unsigned txn with
+   - version
+   - marker
+   - flag
+   - vin
+      - input count
+      - for each input
+        - txin
+        - voutPrev
+        - scriptSig (empty right now)
+   - vout
+       - output count
+       - output amt(0.001)
+       - script pubkey size
+       - script pubkey(for P2SH in this case)
+   - locktime
+   2. Sign It
+       Sign the following using the two keys and create 2 signatures
+       - version
+       - hashPrevOuts: hash256 of concatenated txid+vout
+       - hashSeq: concatenate seq and hash256
+       - txid+vout
+       - scriptcode : cmpt size of witness script + witness script
+       - amount 
+       - seq
+       - hashOutputs: hash256 of concatenated outputs
+       - locktime
+       - sighash
+    3. fill script-sig : op0 + 32bytepush + sha256(witness_script) #check
+    4. Create witness: 
+       - number of stack items
+       - for checkmultisig bug
+       - pushbytes of sig 1
+       - sig 1
+       - pushbytes of sig 2
+       - sig 2
+       - redeem script
+"""
+
 import ecdsa
 import hashlib
 
@@ -11,7 +57,6 @@ def main():
     idx_to_spend = 0
 
     sequence = "ffffffff"
-    output_val_sats = int(0.001*(10**8))
 
 
     locktime = 0
@@ -110,7 +155,16 @@ def main():
         output_spk
     )
 
-
+    unsigned_tx = (
+        version + 
+        marker + 
+        flag + 
+        input_cnt + 
+        inputs + 
+        output_ct +
+        outputs +
+        locktime
+    )
 
 
 if __name__ == "__main__":
@@ -128,4 +182,9 @@ References:
 - p2sh-p2wsh format: Programming Bitcoin by Jimmy Song(Ch -13)
 - cmptSz : https://learnmeabitcoin.com/
 - address prefixes: https://en.bitcoin.it/wiki/List_of_address_prefixes
+- BIP141 : https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki
+- BIP143 : https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki
+- signing P2SH-P2WSH scripts : https://bitcoincore.org/en/segwit_wallet_dev/ and
+                               https://github.com/libbitcoin/libbitcoin-system/wiki/Examples-from-Pay-to-Witness-Transactions
+- what is inside the script-sig exactly : https://www.reddit.com/r/Bitcoin/comments/jmiko9/a_breakdown_of_bitcoin_standard_script_types/
 """
