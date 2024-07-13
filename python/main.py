@@ -47,6 +47,8 @@ Approach:
 import ecdsa
 import hashlib
 
+import ecdsa.util
+
 def main():
     privkey1 = "39dc0a9f0b185a2ee56349691f34716e6e0cda06a7f9707742ac113c4e2317bf"
     privkey2 = "5077ccd9c558b7d04a81920d38aa11b4a9f9de3b23fab45c3ef28039920fdd6d"
@@ -81,7 +83,7 @@ def main():
     pubkey2 = priv_to_pub(bytes.fromhex(privkey2))
 
     # create redeem script
-    redeem_script = bytes.fromhex(
+    witness_script = bytes.fromhex(
         "52" + 
         "21" +
         pubkey2.hex() +
@@ -92,7 +94,7 @@ def main():
     )
 
     # check if it matches the given one
-    print(redeem_script.hex()=="5221032ff8c5df0bc00fe1ac2319c3b8070d6d1e04cfbf4fedda499ae7b775185ad53b21039bbc8d24f89e5bc44c5b0d1980d6658316a6b2440023117c3c03a4975b04dd5652ae")
+    print(witness_script.hex()=="5221032ff8c5df0bc00fe1ac2319c3b8070d6d1e04cfbf4fedda499ae7b775185ad53b21039bbc8d24f89e5bc44c5b0d1980d6658316a6b2440023117c3c03a4975b04dd5652ae")
 
     # calculate script pubkey
     def script_to_spk(redeem_script:bytes)->bytes:
@@ -165,6 +167,38 @@ def main():
         outputs +
         locktime
     )
+
+    # Signing
+    hashPrevouts = hashlib.sha256(txid_to_spend+idx_to_spend)
+    hashSeq = hashlib.sha256(sequence)
+    scriptcode = cmptSz(witness_script)+witness_script
+    amt = output_amt_sats
+    hashOutputs = hashlib.sha256(outputs)
+    sighash_type = bytes.fromhex("01000000")
+    
+    sighash_preimage = hashlib.sha256(
+        version +
+        hashPrevouts +
+        hashSeq +
+        txid_to_spend +
+        idx_to_spend +
+        scriptcode +
+        amt +
+        sequence +
+        hashOutputs +
+        locktime +
+        sighash_type
+    )
+    sighash = hashlib.sha256(sighash_preimage)
+
+    signing_key1 = ecdsa.SigningKey.from_string(privkey1, curve=ecdsa.SECP256k1)
+    signing_key2 = ecdsa.SigningKey.from_string(privkey2, curve=ecdsa.SECP256k1)
+
+    signature1 = signing_key1.sign_digest(sighash, sigencode=ecdsa.util.sigencode_der_canonize)
+    signature2 = signing_key2.sign_digest(sighash, sigencode=ecdsa.util.sigencode_der_canonize)
+
+    signature1 += bytes.fromhex("01")
+    signature2 += bytes.fromhex("01")
 
 
 if __name__ == "__main__":
