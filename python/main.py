@@ -54,14 +54,7 @@ def main():
     privkey2 = "5077ccd9c558b7d04a81920d38aa11b4a9f9de3b23fab45c3ef28039920fdd6d"
 
     redeem_script = "5221032ff8c5df0bc00fe1ac2319c3b8070d6d1e04cfbf4fedda499ae7b775185ad53b21039bbc8d24f89e5bc44c5b0d1980d6658316a6b2440023117c3c03a4975b04dd5652ae"
-
-    txid_to_spend = "0000000000000000000000000000000000000000000000000000000000000000"
-    idx_to_spend = 0
-
-    sequence = "ffffffff"
-
-
-    locktime = 0
+    locktime = bytes.fromhex("00000000")
 
     # convert privkey to pubkey
     def priv_to_pub(privkey:bytes)->bytes:
@@ -244,6 +237,12 @@ def main():
         witness +
         locktime
     )
+    
+    f = open("../out.txt","w")
+    f.write(signed_tx.hex())
+    f.close()
+
+
 if __name__ == "__main__":
     main()
 
