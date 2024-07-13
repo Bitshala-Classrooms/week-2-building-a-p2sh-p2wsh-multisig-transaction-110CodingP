@@ -53,7 +53,6 @@ def main():
     privkey1 = "39dc0a9f0b185a2ee56349691f34716e6e0cda06a7f9707742ac113c4e2317bf"
     privkey2 = "5077ccd9c558b7d04a81920d38aa11b4a9f9de3b23fab45c3ef28039920fdd6d"
 
-    redeem_script = "5221032ff8c5df0bc00fe1ac2319c3b8070d6d1e04cfbf4fedda499ae7b775185ad53b21039bbc8d24f89e5bc44c5b0d1980d6658316a6b2440023117c3c03a4975b04dd5652ae"
     locktime = bytes.fromhex("00000000")
 
     # convert privkey to pubkey
@@ -88,14 +87,6 @@ def main():
 
     # check if it matches the given one
     print(witness_script.hex()=="5221032ff8c5df0bc00fe1ac2319c3b8070d6d1e04cfbf4fedda499ae7b775185ad53b21039bbc8d24f89e5bc44c5b0d1980d6658316a6b2440023117c3c03a4975b04dd5652ae")
-
-    # calculate script pubkey
-    def script_to_spk(redeem_script:bytes)->bytes:
-        digest = hashlib.sha256(redeem_script).digest()
-        spk = bytes.fromhex("0020") + digest
-        return spk
-    
-    spk = script_to_spk(redeem_script)
 
     # version marker and flag
     version = bytes.fromhex("02000000")
