@@ -120,6 +120,16 @@ def main():
             return bytes.fromhex("fe") + val.to_bytes(4,"little",signed=False)
         elif val>4294967295 and val<=18446744073709551615:
             return bytes.fromhex("ff") + val.to_bytes(8,"little",signed=False)
+        
+    # to find out pushbytes opcode
+    def pushbytes(data:bytes)->bytes:
+        sz = len(data)
+        if (sz<=76):
+            return sz.to_bytes(1,byteorder="little",signed=False)
+        elif (sz<=255):
+            return bytes.fromhex("4c") + sz.to_bytes(1,byteorder="little",signed=False)
+        elif (sz<=520):
+            return bytes.fromhex("4d") + sz.to_bytes(1,byteorder="little",signed=False) 
 
     # inputs
     input_cnt = bytes.fromhex("01")
@@ -203,6 +213,17 @@ def main():
     # Fill scriptSig
     script_sig = bytes.fromhex("00") + bytes.fromhex("20") + hashlib.sha256(witness_script)
 
+    # Create witness stack
+    witness = (
+        bytes.fromhex("04") +
+        bytes.fromhex("00") +
+        pushbytes(signature1) +
+        signature1 + 
+        pushbytes(signature2) +
+        signature2 +
+        pushbytes(witness_script) +
+        witness_script
+    )
 
 if __name__ == "__main__":
     main()
