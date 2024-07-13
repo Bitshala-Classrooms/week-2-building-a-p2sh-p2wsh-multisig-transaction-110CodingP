@@ -224,7 +224,26 @@ def main():
         pushbytes(witness_script) +
         witness_script
     )
+    
+    inputs = (
+        txid_to_spend +
+        idx_to_spend +
+        cmptSz(script_sig) +
+        script_sig +
+        sequence
+    )
 
+    signed_tx = (
+        version + 
+        marker + 
+        flag + 
+        input_cnt + 
+        inputs + 
+        output_ct +
+        outputs +
+        witness +
+        locktime
+    )
 if __name__ == "__main__":
     main()
 
