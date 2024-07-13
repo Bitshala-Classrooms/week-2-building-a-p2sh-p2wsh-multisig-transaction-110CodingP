@@ -46,6 +46,7 @@ Approach:
 
 import ecdsa
 import hashlib
+import base58
 
 import ecdsa.util
 
@@ -86,7 +87,7 @@ def main():
     )
 
     # check if it matches the given one
-    print(witness_script.hex()=="5221032ff8c5df0bc00fe1ac2319c3b8070d6d1e04cfbf4fedda499ae7b775185ad53b21039bbc8d24f89e5bc44c5b0d1980d6658316a6b2440023117c3c03a4975b04dd5652ae")
+    # print(witness_script.hex()=="5221032ff8c5df0bc00fe1ac2319c3b8070d6d1e04cfbf4fedda499ae7b775185ad53b21039bbc8d24f89e5bc44c5b0d1980d6658316a6b2440023117c3c03a4975b04dd5652ae")
 
     # version marker and flag
     version = bytes.fromhex("02000000")
@@ -95,7 +96,7 @@ def main():
 
     # to calculate compact size
     def cmptSz(data:bytes)->bytes:
-        val = int.from_bytes(data)
+        val = len(data) # c'mmon it's compact SIZE for a reason
         if (val<=252):
             return val.to_bytes(1,"little",signed=False)
         elif val>252 and val<=65535:
@@ -144,6 +145,7 @@ def main():
     # outputs
     output_ct = bytes.fromhex("01")
     output_amt_sats = int(0.01*(10**8)).to_bytes(8,byteorder="little",signed=True)
+    # print(cmptSz(output_spk))
 
     outputs = (
         output_amt_sats + 
@@ -163,11 +165,11 @@ def main():
     )
 
     # Signing
-    hashPrevouts = hashlib.sha256(txid_to_spend+idx_to_spend)
-    hashSeq = hashlib.sha256(sequence)
+    hashPrevouts = hashlib.sha256(txid_to_spend+idx_to_spend).digest()
+    hashSeq = hashlib.sha256(sequence).digest()
     scriptcode = cmptSz(witness_script)+witness_script
     amt = output_amt_sats
-    hashOutputs = hashlib.sha256(outputs)
+    hashOutputs = hashlib.sha256(outputs).digest()
     sighash_type = bytes.fromhex("01000000")
     
     sighash_preimage = hashlib.sha256(
@@ -182,11 +184,11 @@ def main():
         hashOutputs +
         locktime +
         sighash_type
-    )
-    sighash = hashlib.sha256(sighash_preimage)
+    ).digest()
+    sighash = hashlib.sha256(sighash_preimage).digest()
 
-    signing_key1 = ecdsa.SigningKey.from_string(privkey1, curve=ecdsa.SECP256k1)
-    signing_key2 = ecdsa.SigningKey.from_string(privkey2, curve=ecdsa.SECP256k1)
+    signing_key1 = ecdsa.SigningKey.from_string(bytes.fromhex(privkey1), curve=ecdsa.SECP256k1)
+    signing_key2 = ecdsa.SigningKey.from_string(bytes.fromhex(privkey2), curve=ecdsa.SECP256k1)
 
     signature1 = signing_key1.sign_digest(sighash, sigencode=ecdsa.util.sigencode_der_canonize)
     signature2 = signing_key2.sign_digest(sighash, sigencode=ecdsa.util.sigencode_der_canonize)
@@ -195,7 +197,7 @@ def main():
     signature2 += bytes.fromhex("01")
 
     # Fill scriptSig
-    script_sig = bytes.fromhex("00") + bytes.fromhex("20") + hashlib.sha256(witness_script)
+    script_sig = bytes.fromhex("00") + bytes.fromhex("20") + hashlib.sha256(witness_script).digest()
 
     # Create witness stack
     witness = (
@@ -229,8 +231,8 @@ def main():
         locktime
     )
     
-    f = open("../out.txt","w")
-    f.write(signed_tx.hex())
+    f = open("out.txt","w")
+    f.write(f'{signed_tx.hex()}')
     f.close()
 
 
