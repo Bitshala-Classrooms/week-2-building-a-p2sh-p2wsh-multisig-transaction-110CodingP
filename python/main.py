@@ -140,8 +140,8 @@ def main():
     receiver_address = "325UUecEQuyrTd28Xs2hvAxdAjHM7XzqVF" # prefix => 3 so P2SH
     receiver_address = base58.b58decode("325UUecEQuyrTd28Xs2hvAxdAjHM7XzqVF")
     decoded = receiver_address[:-4]
-    checksum = receiver_address[-4:]
-    decoded_hash = hashlib.sha256(decoded).digest()
+    # checksum = receiver_address[-4:]
+    # decoded_hash = hashlib.sha256(decoded).digest()
     # print(hashlib.sha256(decoded_hash).digest()[:4]==checksum)
     output_script_hash = decoded[1:]
     output_spk = bytes.fromhex("a9") + bytes.fromhex("14") + output_script_hash + bytes.fromhex("87") 
@@ -200,6 +200,9 @@ def main():
     signature1 += bytes.fromhex("01")
     signature2 += bytes.fromhex("01")
 
+    # Fill scriptSig
+    script_sig = bytes.fromhex("00") + bytes.fromhex("20") + hashlib.sha256(witness_script)
+
 
 if __name__ == "__main__":
     main()
@@ -221,4 +224,5 @@ References:
 - signing P2SH-P2WSH scripts : https://bitcoincore.org/en/segwit_wallet_dev/ and
                                https://github.com/libbitcoin/libbitcoin-system/wiki/Examples-from-Pay-to-Witness-Transactions
 - what is inside the script-sig exactly : https://www.reddit.com/r/Bitcoin/comments/jmiko9/a_breakdown_of_bitcoin_standard_script_types/
+- OP_0 and OP_PUSHBYTES_32 hex : https://learnmeabitcoin.com/technical/transaction/output/scriptpubkey/
 """
