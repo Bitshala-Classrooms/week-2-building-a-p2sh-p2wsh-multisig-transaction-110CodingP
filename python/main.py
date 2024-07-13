@@ -144,7 +144,7 @@ def main():
 
     # outputs
     output_ct = bytes.fromhex("01")
-    output_amt_sats = int(0.01*(10**8)).to_bytes(8,byteorder="little",signed=True)
+    output_amt_sats = int(0.001*(10**8)).to_bytes(8,byteorder="little",signed=True)
     # print(cmptSz(output_spk))
 
     outputs = (
