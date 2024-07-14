@@ -199,6 +199,8 @@ def main():
     # Fill scriptSig
     script_sig = bytes.fromhex("00") + bytes.fromhex("20") + hashlib.sha256(witness_script).digest()
 
+    
+
     # Create witness stack
     witness = (
         bytes.fromhex("04") +
