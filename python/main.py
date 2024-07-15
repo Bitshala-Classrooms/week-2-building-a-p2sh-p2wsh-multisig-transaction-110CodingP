@@ -114,7 +114,7 @@ def main():
         elif (sz<=255):
             return bytes.fromhex("4c") + sz.to_bytes(1,byteorder="little",signed=False)
         elif (sz<=520):
-            return bytes.fromhex("4d") + sz.to_bytes(1,byteorder="little",signed=False) 
+            return bytes.fromhex("4d") + sz.to_bytes(2,byteorder="little",signed=False) 
 
     # inputs
     input_cnt = bytes.fromhex("01")
@@ -198,6 +198,7 @@ def main():
 
     # Fill scriptSig
     script_sig = bytes.fromhex("00") + bytes.fromhex("20") + hashlib.sha256(witness_script).digest()
+    script_sig = pushbytes(script_sig)+script_sig # got to know this from libbitcoin
 
     # Create witness stack
     witness = (
@@ -257,4 +258,5 @@ References:
                                https://github.com/libbitcoin/libbitcoin-system/wiki/Examples-from-Pay-to-Witness-Transactions
 - what is inside the script-sig exactly : https://www.reddit.com/r/Bitcoin/comments/jmiko9/a_breakdown_of_bitcoin_standard_script_types/
 - OP_0 and OP_PUSHBYTES_32 hex : https://learnmeabitcoin.com/technical/transaction/output/scriptpubkey/
+- Transaction Splitter tool in learnmeabitcoin : https://learnmeabitcoin.com/tools/
 """
