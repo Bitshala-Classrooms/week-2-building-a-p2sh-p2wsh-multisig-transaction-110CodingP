@@ -27,13 +27,13 @@ Approach:
        - hashPrevOuts: hash256 of concatenated txid+vout
        - hashSeq: concatenate seq and hash256
        - txid+vout
-       - scriptcode : cmpt size of witness script + witness script
+       - scriptcode : witness script
        - amount 
        - seq
        - hashOutputs: hash256 of concatenated outputs
        - locktime
        - sighash
-    3. fill script-sig : op0 + 32bytepush + sha256(witness_script) #check
+    3. fill script-sig :  push_bytes + op0 + 32bytepush + sha256(witness_script) #check
     4. Create witness: 
        - number of stack items
        - for checkmultisig bug
@@ -118,7 +118,7 @@ def main():
 
     # inputs
     input_cnt = bytes.fromhex("01")
-    txid_to_spend = bytes.fromhex("0000000000000000000000000000000000000000000000000000000000000000")
+    txid_to_spend = bytes.fromhex("0000000000000000000000000000000000000000000000000000000000000000")[::-1]
     idx_to_spend = bytes.fromhex("00000000")
     script_sig = bytes.fromhex("")
     sequence = bytes.fromhex("ffffffff")
@@ -165,27 +165,29 @@ def main():
     )
 
     # Signing
-    hashPrevouts = hashlib.sha256(txid_to_spend+idx_to_spend).digest()
-    hashSeq = hashlib.sha256(sequence).digest()
-    scriptcode = cmptSz(witness_script)+witness_script
+    def hash256(data:bytes)->bytes:
+        return hashlib.sha256(hashlib.sha256(data).digest()).digest()
+    hashPrevouts = hash256(txid_to_spend+idx_to_spend)
+    hashSeq = hash256(sequence)
+    scriptcode = witness_script
     amt = output_amt_sats
-    hashOutputs = hashlib.sha256(outputs).digest()
+    hashOutputs = hash256(outputs)
     sighash_type = bytes.fromhex("01000000")
     
-    sighash_preimage = hashlib.sha256(
+    sighash = hash256(
         version +
         hashPrevouts +
         hashSeq +
         txid_to_spend +
         idx_to_spend +
+        cmptSz(scriptcode) + 
         scriptcode +
         amt +
         sequence +
         hashOutputs +
         locktime +
         sighash_type
-    ).digest()
-    sighash = hashlib.sha256(sighash_preimage).digest()
+    )
 
     signing_key1 = ecdsa.SigningKey.from_string(bytes.fromhex(privkey1), curve=ecdsa.SECP256k1)
     signing_key2 = ecdsa.SigningKey.from_string(bytes.fromhex(privkey2), curve=ecdsa.SECP256k1)
@@ -197,12 +199,12 @@ def main():
     signature2 += bytes.fromhex("01")
 
     # Fill scriptSig
-    script_sig = bytes.fromhex("00") + bytes.fromhex("20") + hashlib.sha256(witness_script).digest()
+    witness_script_hash = hashlib.sha256(witness_script).digest()
+    script_sig = bytes.fromhex("00" + "20" + witness_script_hash.hex())
     script_sig = pushbytes(script_sig)+script_sig # got to know this from libbitcoin
 
     # Create witness stack
     witness = (
-        bytes.fromhex("04") +
         bytes.fromhex("00") +
         pushbytes(signature1) +
         signature1 + 
@@ -228,6 +230,7 @@ def main():
         inputs + 
         output_ct +
         outputs +
+        bytes.fromhex("04")+
         witness +
         locktime
     )

@@ -16,7 +16,7 @@ describe('Evaluate submission', () => {
 
     it('should parse serialised tx', () => {
         tx = TX.fromRaw(txHex, 'hex');
-        console.log(tx)
+        expect(tx).toBeDefined();
     });
 
     it('should have only 1 input', () => {
