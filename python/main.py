@@ -165,8 +165,10 @@ def main():
     )
 
     # Signing
+
     def hash256(data:bytes)->bytes:
         return hashlib.sha256(hashlib.sha256(data).digest()).digest()
+    
     hashPrevouts = hash256(txid_to_spend+idx_to_spend)
     hashSeq = hash256(sequence)
     scriptcode = witness_script
@@ -206,10 +208,10 @@ def main():
     # Create witness stack
     witness = (
         bytes.fromhex("00") +
-        pushbytes(signature1) +
-        signature1 + 
         pushbytes(signature2) +
-        signature2 +
+        signature2 + 
+        pushbytes(signature1) +
+        signature1 +
         pushbytes(witness_script) +
         witness_script
     )
